@@ -44,7 +44,12 @@ jobs:
           # Keep input readme & placeholders
           rm -rf release_tree/src/input/* || true
           mkdir -p release_tree/src/input
-          cp src/input/README_INPUTS.md release_tree/src/input/README_INPUTS.md
+          # Copy a minimal set of safe placeholders/examples if present
+          for f in README_INPUTS.md PLACE_ADOBERGB1998_ICC_HERE.txt input_example.ti1 input_example.csv; do
+            if [ -f "src/input/$f" ]; then
+              cp "src/input/$f" "release_tree/src/input/$f"
+            fi
+          done
           # Exclude historical io_old
           rm -rf release_tree/io_old || true
           (cd release_tree && zip -r ../dist/$ZIP_NAME .)
