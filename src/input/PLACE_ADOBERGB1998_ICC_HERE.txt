@@ -1,0 +1,8 @@
+Optional source profile for gamut mapping (-S/-s)
+
+Place AdobeRGB1998.icc (or another source ICC) in this folder and set
+[colprof].gamut_map_both or gamut_map_perceptual in src/profile_config.ini.
+
+Notes:
+- If the profile is missing, the builder will skip -S/-s and warn.
+- You can also set an absolute path in the config instead of placing the file here.

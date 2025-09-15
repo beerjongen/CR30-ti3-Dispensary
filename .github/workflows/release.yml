@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build distributable zip
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          ZIP_NAME="CR30-ti3-Dispensary.zip"
+          # Create a clean tree with only the pieces we want to ship
+          mkdir -p release_tree
+          cp -r src release_tree/
+          # Copy README (prefer README.md, fallback to legacy name)
+          if [ -f README.md ]; then
+            cp README.md release_tree/README.md
+          elif [ -f README_CR30_ti3_Dispensary.md ]; then
+            cp README_CR30_ti3_Dispensary.md release_tree/README.md
+          else
+            echo "# CR30 ti3 Dispensary" > release_tree/README.md
+          fi
+          # Ensure inputs/outputs contain only readmes/placeholders
+          rm -rf release_tree/src/output/* || true
+          # Keep output readme
+          cp src/output/README.md release_tree/src/output/README.md
+          # Keep input readme & placeholders
+          rm -rf release_tree/src/input/* || true
+          mkdir -p release_tree/src/input
+          cp src/input/README_INPUTS.md release_tree/src/input/README_INPUTS.md
+          # Exclude historical io_old
+          rm -rf release_tree/io_old || true
+          (cd release_tree && zip -r ../dist/$ZIP_NAME .)
+          echo "artifact=$ZIP_NAME" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes
+        id: notes
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.body }}
+          files: |
+            dist/*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
