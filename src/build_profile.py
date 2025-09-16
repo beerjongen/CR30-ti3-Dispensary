@@ -85,7 +85,7 @@ import subprocess
 import sys
 import shutil
 from datetime import datetime
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, Set
 
 HERE = os.path.dirname(__file__)
 CFG_PATH = os.path.join(HERE, 'profile_config.ini')
@@ -370,7 +370,8 @@ def write_ti3(out_path: str,
               cr30: Dict,
               sample_locs: Optional[List[Tuple[int, str]]] = None,
               device_class: str = 'OUTPUT',
-              ti2_header_lines: Optional[List[str]] = None) -> None:
+              ti2_header_lines: Optional[List[str]] = None,
+              ti2_header_whitelist: Optional[List[str]] = None) -> None:
     """Write an Argyll CGATS TI3 file.
 
     - device_fields: list of device channel field names
@@ -380,6 +381,7 @@ def write_ti3(out_path: str,
     - device_class: DEVICE_CLASS header value (e.g., OUTPUT)
     - Data pass-through: write spectral/XYZ/Lab only if present in CSV; no conversions
     - ti2_header_lines: TI2 header lines for promoting select keys and recording provenance
+    - ti2_header_whitelist: list of TI2 header keys to promote into TI3 (case-insensitive). If empty or not provided, no TI2 headers are promoted.
     """
     out_dir = os.path.dirname(out_path)
     if out_dir and not os.path.isdir(out_dir):
@@ -430,19 +432,20 @@ def write_ti3(out_path: str,
         else:
             f.write('INSTRUMENT_TYPE_SPECTRAL "NO"\n')
         if ti2_header_lines:
-            whitelist = {
-                'COMP_GREY_STEPS', 'PAPER_SIZE', 'CHART_ID'
-            }
-            for hl in ti2_header_lines:
-                s = hl.strip()
-                if not s:
-                    continue
-                m = re.match(r'^([A-Z0-9_]+)\s+(.*)$', s)
-                if not m:
-                    continue
-                key, rest = m.group(1), m.group(2)
-                if key in whitelist:
-                    f.write(f'{key} {rest}\n')
+            cfg_whitelist: Set[str] = set(
+                k.strip().upper() for k in (ti2_header_whitelist or []) if k.strip()
+            )
+            if cfg_whitelist:
+                for hl in ti2_header_lines:
+                    s = hl.strip()
+                    if not s:
+                        continue
+                    m = re.match(r'^([A-Z0-9_]+)\s+(.*)$', s)
+                    if not m:
+                        continue
+                    key, rest = m.group(1), m.group(2)
+                    if key in cfg_whitelist:
+                        f.write(f'{key} {rest}\n')
         f.write(f'\nNUMBER_OF_FIELDS {len(fields)}\n')
         f.write('BEGIN_DATA_FORMAT\n')
         f.write(' '.join(fields) + ' \n')
@@ -550,6 +553,10 @@ def main():
     # In-process conversion (single entry point)
     cr30 = parse_cr30_csv(csv)
     ti2_parsed = parse_ti2(ti2)
+    # Read optional TI2 header whitelist from config (comma or whitespace separated)
+    wl_raw = cfg.get('options', 'ti2_header_whitelist', fallback='')
+    ti2_whitelist = [tok.strip() for tok in re.split(r'[\s,]+', wl_raw) if tok.strip()] if wl_raw else []
+
     write_ti3(
         out_path=out_ti3,
         device_fields=ti2_parsed['device_fields'],
@@ -557,7 +564,8 @@ def main():
         cr30=cr30,
         sample_locs=ti2_parsed.get('sample_locs'),
         device_class=device_class,
-        ti2_header_lines=ti2_parsed.get('header_lines')
+        ti2_header_lines=ti2_parsed.get('header_lines'),
+        ti2_header_whitelist=ti2_whitelist
     )
     print(f"✓ Wrote {out_ti3}")
 

@@ -1,0 +1,14 @@
+# Byte-compiled / cache
+__pycache__/
+*.pyc
+
+# Build artifacts
+dist/
+release_tree/
+
+# OS files
+.DS_Store
+
+# Generated example outputs
+src/output/output_example.ti3
+src/output/output_example.icc

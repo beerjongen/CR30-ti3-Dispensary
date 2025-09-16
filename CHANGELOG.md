@@ -1,4 +1,10 @@
 # Changelog
+## [v0.2.1] - 2025-09-16
+### Changed
+- TI2 header promotion is now fully configurable: added `ti2_header_whitelist` in `src/profile_config.ini` to control which TI2 header keys are promoted into the TI3 header.
+- Removed the hard-coded default whitelist from code. If `ti2_header_whitelist` is empty, no TI2 headers are promoted.
+- The default config now sets `ti2_header_whitelist = COMP_GREY_STEPS, PAPER_SIZE, CHART_ID` to preserve previous behavior while making it explicit and versionable.
+
 ## [v0.2.0] - 2025-09-16
 ### Changed
 - TI2-only workflow: use a TI2 target file with the CR30 CSV. TI2 defines device space (iRGB/iCMYK/…), patch order, and SAMPLE_IDs. CSV row N pairs strictly with TI2 SAMPLE_ID N.
