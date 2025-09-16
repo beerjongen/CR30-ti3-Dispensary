@@ -10,4 +10,4 @@ Naming:
 
 Notes:
 - If you only want the ti3 (no profile), set `[colprof].run = false`.
-- Spectral-only ti3 is normal in this workflow when spectra are present.
+- When spectral data is present, the TI3 includes spectral and any PCS columns from the CSV; colprof will use spectral for the profile fit.

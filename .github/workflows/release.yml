@@ -32,26 +32,27 @@ jobs:
           # Copy README (prefer README.md, fallback to legacy name)
           if [ -f README.md ]; then
             cp README.md release_tree/README.md
-          elif [ -f README_CR30_ti3_Dispensary.md ]; then
-            cp README_CR30_ti3_Dispensary.md release_tree/README.md
           else
             echo "# CR30 ti3 Dispensary" > release_tree/README.md
           fi
           # Ensure inputs/outputs contain only readmes/placeholders
           rm -rf release_tree/src/output/* || true
-          # Keep output readme
-          cp src/output/README.md release_tree/src/output/README.md
+          # Keep output readme with fixed name README_OUTPUTS.md
+          if [ -f src/output/README_OUTPUTS.md ]; then
+            cp src/output/README_OUTPUTS.md release_tree/src/output/README_OUTPUTS.md
+          else
+            echo "# Output folder\nThis folder will contain generated files (TI3/ICC)." > release_tree/src/output/README_OUTPUTS.md
+          fi
           # Keep input readme & placeholders
           rm -rf release_tree/src/input/* || true
           mkdir -p release_tree/src/input
           # Copy a minimal set of safe placeholders/examples if present
-          for f in README_INPUTS.md PLACE_ADOBERGB1998_ICC_HERE.txt input_example.ti1 input_example.csv; do
+          for f in README_INPUTS.md input_example.ti2 input_example.csv; do
             if [ -f "src/input/$f" ]; then
               cp "src/input/$f" "release_tree/src/input/$f"
             fi
           done
-          # Exclude historical io_old
-          rm -rf release_tree/io_old || true
+          # Create the zip artifact
           (cd release_tree && zip -r ../dist/$ZIP_NAME .)
           echo "artifact=$ZIP_NAME" >> $GITHUB_OUTPUT
 
