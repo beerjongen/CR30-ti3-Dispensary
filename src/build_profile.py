@@ -4,6 +4,7 @@ import os
 import shlex
 import subprocess
 import sys
+import shutil
 
 HERE = os.path.dirname(__file__)
 CFG_PATH = os.path.join(HERE, 'profile_config.ini')
@@ -70,6 +71,20 @@ def main():
     device_class = cfg.get('options', 'device_class', fallback='OUTPUT')
     prefer_spectral = cfg.getboolean('options', 'prefer_spectral', fallback=True)
     prefer_lab = cfg.getboolean('options', 'prefer_lab', fallback=False)
+
+    # Preflight checks
+    missing = False
+    if not csv or not os.path.isfile(csv):
+        print(f"Error: CSV not found -> {csv!r}. Edit inputs.csv in {CFG_PATH} or place the file under src/input.")
+        missing = True
+    if not ti1 or not os.path.isfile(ti1):
+        print(f"Error: ti1 not found -> {ti1!r}. Edit inputs.ti1 in {CFG_PATH} or place the file under src/input.")
+        missing = True
+    if missing:
+        sys.exit(2)
+    # Warn early if colprof won't be available
+    if cfg.getboolean('colprof', 'run', fallback=True) and shutil.which('colprof') is None:
+        print("Warning: 'colprof' not found on PATH. ICC creation will fail. Either install ArgyllCMS or set [colprof].run = false in profile_config.ini to skip.")
 
     # Build ti3 using cr30_to_ti3.py
     script = os.path.join(os.path.dirname(__file__), 'cr30_to_ti3.py')

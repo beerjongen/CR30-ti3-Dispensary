@@ -39,8 +39,14 @@ jobs:
           fi
           # Ensure inputs/outputs contain only readmes/placeholders
           rm -rf release_tree/src/output/* || true
-          # Keep output readme
-          cp src/output/README.md release_tree/src/output/README.md
+          # Keep output readme (support README.md or README_OUTPUTS.md)
+          if [ -f src/output/README.md ]; then
+            cp src/output/README.md release_tree/src/output/README.md
+          elif [ -f src/output/README_OUTPUTS.md ]; then
+            cp src/output/README_OUTPUTS.md release_tree/src/output/README.md
+          else
+            echo "# Output folder" > release_tree/src/output/README.md
+          fi
           # Keep input readme & placeholders
           rm -rf release_tree/src/input/* || true
           mkdir -p release_tree/src/input
