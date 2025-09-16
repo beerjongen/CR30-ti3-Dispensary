@@ -8,16 +8,21 @@ file using strict index pairing (no SAMPLE_LOC matching). The script detects ava
 columns and populates the header accordingly. If only Lab is present and XYZ is
 requested, it converts Lab→XYZ using D50 white.
 
-Usage (defaults based on workspace examples):
-  python3 cr30_to_ti3.py \
-    --csv "testprofile v2.csv" \
-    --ti1 228-target.ti1 \
-    --out cr30_converted.ti3
+Usage examples:
+    # Use bundled examples (Windows/cmd or macOS/Linux)
+    python cr30_to_ti3.py
+
+    # Or provide your own files
+    python cr30_to_ti3.py \
+        --csv "input/my_export.csv" \
+        --ti1 "input/my_target.ti1" \
+        --out "output/my_result.ti3"
 
 """
 import argparse
 import re
 from datetime import datetime
+import os
 from typing import List, Dict, Tuple, Optional
 
 # --------------------- Utilities ---------------------
@@ -288,6 +293,10 @@ def write_ti3(out_path: str,
               device_class: str = 'OUTPUT',
               prefer_spectral: bool = True,
               prefer_xyz_over_lab: bool = True) -> None:
+    # Ensure output directory exists for standalone use (builder handles this elsewhere)
+    out_dir = os.path.dirname(out_path)
+    if out_dir and not os.path.isdir(out_dir):
+        os.makedirs(out_dir, exist_ok=True)
     # Determine availability
     has_lab = any(r.get('L') is not None for r in cr30['rows'])
     has_xyz = any(r.get('X') is not None for r in cr30['rows'])
@@ -408,9 +417,10 @@ def write_ti3(out_path: str,
 
 def main():
     p = argparse.ArgumentParser(description='Convert CR30 CSV + ti1 to Argyll .ti3 (order-only)')
-    p.add_argument('--csv', required=False, default='testprofile v2.csv')
-    p.add_argument('--ti1', required=False, default='228-target.ti1')
-    p.add_argument('--out', required=False, default='cr30_converted.ti3')
+    # Defaults point to bundled examples so `python cr30_to_ti3.py` works out-of-the-box
+    p.add_argument('--csv', required=False, default=os.path.join('input', 'input_example.csv'))
+    p.add_argument('--ti1', required=False, default=os.path.join('input', 'input_example.ti1'))
+    p.add_argument('--out', required=False, default=os.path.join('output', 'cr30_example.ti3'))
     p.add_argument('--device-class', default='OUTPUT')
     p.add_argument('--no-prefer-spectral', action='store_true', help='If spectral present, do not force spectral-only; allow XYZ/Lab as per availability')
     p.add_argument('--prefer-lab', action='store_true', help='When choosing a single PCS (no spectral), prefer Lab over XYZ')

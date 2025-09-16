@@ -57,3 +57,15 @@ See `src/profile_config.ini` — each option includes a brief description and ma
   - threads env for OpenMP
 
 If an option is left empty or false, it is omitted from the command without notice.
+
+## Windows usage notes
+- Don’t call the script name without `python`; use one of:
+  - `src\build_profile.bat` (double-click or run in cmd) to run with config
+  - `python src\build_profile.py`
+  - `python src\cr30_to_ti3.py --csv src\input\your.csv --ti1 src\input\your.ti1 --out src\output\your.ti3`
+- Common errors explained:
+  - "is not recognized as an internal or external command": You tried to run `cr30_to_ti3` directly. Use `python cr30_to_ti3.py` or `src\cr30_to_ti3.bat`.
+  - `NameError: name 'cr30_to_ti3' is not defined`: You typed `cr30_to_ti3` inside the Python REPL. Exit the REPL and run `python cr30_to_ti3.py` in the shell.
+  - `FileNotFoundError: 'testprofile v2.csv'`: Provide `--csv` and `--ti1` paths, or use the defaults by running from `src/` or using the provided examples. The script now defaults to `src/input/input_example.csv` and `src/input/input_example.ti1` and writes to `src/output/cr30_example.ti3`.
+
+Tip: If you have the Python launcher on Windows, `py -3` works too: `py -3 src\build_profile.py`.
