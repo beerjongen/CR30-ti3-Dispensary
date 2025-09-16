@@ -13,6 +13,8 @@ Developed for the user "Pharmacist" of Printerknowledge.com with a specific use 
 - Strict one-to-one by index: CSV measurement should match the set order defined with targen (default targen is ordered random)
   
 ## Quick start
+Prefer using the builder; it orchestrates everything (CSV→TI3 and ICC creation) and resolves paths from `profile_config.ini`.
+
 1) Drop inputs in `src/input/`
   - CSV (CR30 export)
   - ti1 (e.g., `228-target.ti1`)
@@ -22,7 +24,13 @@ Developed for the user "Pharmacist" of Printerknowledge.com with a specific use 
 3) Run the builder
 
 ```bash
+# Linux/macOS
 python3 src/build_profile.py
+
+# Windows (choose the one that works on your system)
+python3 src\build_profile.py
+python src\build_profile.py
+py -3 src\build_profile.py
 ```
 
 Outputs land in `src/output/` by default:
@@ -33,8 +41,8 @@ Outputs land in `src/output/` by default:
 - `src/input/` — put your input files here (CSV, ti1)
 - `src/output/` — generated outputs (ti3, ICC) go here by default
 - `src/profile_config.ini` — edit this to control inputs, outputs, and colprof options
-- `src/build_profile.py` — reads the config, writes the ti3, runs colprof
-- `src/cr30_to_ti3.py` — converter from CSV to ti3 (used by `build_profile.py`)
+- `src/build_profile.py` — MAIN entry point: reads the config, calls the converter, runs `colprof`
+- `src/cr30_to_ti3.py` — standalone converter from CSV to TI3 (also invoked by `build_profile.py`)
 
 ## Config reference
 See `src/profile_config.ini` — each option includes a brief description and maps to `colprof` flags. Paths:
@@ -58,14 +66,13 @@ See `src/profile_config.ini` — each option includes a brief description and ma
 
 If an option is left empty or false, it is omitted from the command without notice.
 
-## Windows usage notes
-- Don’t call the script name without `python`; use one of:
-  - `src\build_profile.bat` (double-click or run in cmd) to run with config
-  - `python src\build_profile.py`
-  - `python src\cr30_to_ti3.py --csv src\input\your.csv --ti1 src\input\your.ti1 --out src\output\your.ti3`
-- Common errors explained:
-  - "is not recognized as an internal or external command": You tried to run `cr30_to_ti3` directly. Use `python cr30_to_ti3.py` or `src\cr30_to_ti3.bat`.
-  - `NameError: name 'cr30_to_ti3' is not defined`: You typed `cr30_to_ti3` inside the Python REPL. Exit the REPL and run `python cr30_to_ti3.py` in the shell.
-  - `FileNotFoundError: 'testprofile v2.csv'`: Provide `--csv` and `--ti1` paths, or use the defaults by running from `src/` or using the provided examples. The script now defaults to `src/input/input_example.csv` and `src/input/input_example.ti1` and writes to `src/output/cr30_example.ti3`.
+### Standalone converter (optional)
+If you only need a `.ti3` and want to run the converter directly, you must provide explicit paths (there are no implicit defaults):
 
-Tip: If you have the Python launcher on Windows, `py -3` works too: `py -3 src\build_profile.py`.
+```bash
+# Linux/macOS
+python3 src/cr30_to_ti3.py --csv "src/input/your.csv" --ti1 "src/input/your.ti1" --out "src/output/your.ti3"
+
+# Windows
+python3 src\cr30_to_ti3.py --csv "src\input\your.csv" --ti1 "src\input\your.ti1" --out "src\output\your.ti3"
+```

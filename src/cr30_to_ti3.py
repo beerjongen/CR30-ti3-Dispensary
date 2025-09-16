@@ -8,15 +8,16 @@ file using strict index pairing (no SAMPLE_LOC matching). The script detects ava
 columns and populates the header accordingly. If only Lab is present and XYZ is
 requested, it converts Lab→XYZ using D50 white.
 
-Usage examples:
-    # Use bundled examples (Windows/cmd or macOS/Linux)
-    python cr30_to_ti3.py
+Usage
+-----
+Preferred entry point: run `python3 build_profile.py`, which reads `profile_config.ini`, calls this converter, and (optionally) runs `colprof`.
 
-    # Or provide your own files
-    python cr30_to_ti3.py \
-        --csv "input/my_export.csv" \
-        --ti1 "input/my_target.ti1" \
-        --out "output/my_result.ti3"
+Standalone examples (only if you want to generate a TI3 directly):
+    # Provide your own files explicitly (no built-in defaults)
+    python3 cr30_to_ti3.py \
+        --csv "input/your_measurements.csv" \
+        --ti1 "input/your_target.ti1" \
+        --out "output/your_result.ti3"
 
 """
 import argparse
@@ -417,10 +418,10 @@ def write_ti3(out_path: str,
 
 def main():
     p = argparse.ArgumentParser(description='Convert CR30 CSV + ti1 to Argyll .ti3 (order-only)')
-    # Defaults point to bundled examples so `python cr30_to_ti3.py` works out-of-the-box
-    p.add_argument('--csv', required=False, default=os.path.join('input', 'input_example.csv'))
-    p.add_argument('--ti1', required=False, default=os.path.join('input', 'input_example.ti1'))
-    p.add_argument('--out', required=False, default=os.path.join('output', 'cr30_example.ti3'))
+    # All inputs must be provided explicitly when used standalone
+    p.add_argument('--csv', required=True)
+    p.add_argument('--ti1', required=True)
+    p.add_argument('--out', required=True)
     p.add_argument('--device-class', default='OUTPUT')
     p.add_argument('--no-prefer-spectral', action='store_true', help='If spectral present, do not force spectral-only; allow XYZ/Lab as per availability')
     p.add_argument('--prefer-lab', action='store_true', help='When choosing a single PCS (no spectral), prefer Lab over XYZ')

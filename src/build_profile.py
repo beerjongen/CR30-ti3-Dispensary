@@ -42,7 +42,14 @@ def resolve_output(p: str) -> str:
 
 def run(cmd, env=None):
     print('> ' + ' '.join(cmd))
-    res = subprocess.run(cmd, env=env)
+    try:
+        res = subprocess.run(cmd, env=env)
+    except FileNotFoundError as e:
+        missing = cmd[0]
+        print(f"Error: command not found: {missing}")
+        if missing == 'colprof':
+            print("Hint: Install ArgyllCMS and ensure 'colprof' is on your PATH, or set [colprof].run = false in src/profile_config.ini to skip profile generation.")
+        sys.exit(127)
     if res.returncode != 0:
         print(f"Command failed with code {res.returncode}")
         sys.exit(res.returncode)
